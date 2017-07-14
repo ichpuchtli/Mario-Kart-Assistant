@@ -6,17 +6,17 @@ var Data;
      */
     Data.StatisticNames = [
         "Speed",
-        "Acceleration",
-        "Weight",
-        "Handling",
-        "Traction",
-        "Mini-Turbo",
         "Speed (Water)",
         "Speed (Air)",
         "Speed (Anti-Gravity)",
+        "Acceleration",
+        "Weight",
+        "Handling",
         "Handling (Water)",
         "Handling (Air)",
-        "Handling (Anti-Gravity)"
+        "Handling (Anti-Gravity)",
+        "Traction",
+        "Mini-Turbo"
     ];
     // Data comes from https://www.mariowiki.com/Mario_Kart_8_Deluxe#Renewed_statistics
     var CharacterStats = [];
@@ -24,20 +24,20 @@ var Data;
     var TireStats = [];
     var GliderStats = [];
     Data.PartStats = [
-        ["Character", CharacterStats],
-        ["Kart/Bike", KartBikeStats],
-        ["Tires", TireStats],
-        ["Glider", GliderStats]
+        { type: "Character", stats: CharacterStats },
+        { type: "Kart/Bike", stats: KartBikeStats },
+        { type: "Tires", stats: TireStats },
+        { type: "Glider", stats: GliderStats }
     ];
     var Characters = [];
     var KartBikes = [];
     var Tires = [];
     var Gliders = [];
     Data.Parts = [
-        ["Character", Characters],
-        ["Kart/Bike", KartBikes],
-        ["Tires", Tires],
-        ["Glider", Gliders]
+        { type: "Character", parts: Characters },
+        { type: "Kart/Bike", parts: KartBikes },
+        { type: "Tires", parts: Tires },
+        { type: "Glider", parts: Gliders }
     ];
 })(Data || (Data = {}));
 //# sourceMappingURL=data.js.map
