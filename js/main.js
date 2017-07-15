@@ -2,10 +2,7 @@
 var Program;
 (function (Program) {
     function init() {
-        var stats = Data.PartStats;
-        console.log(stats);
-        var parts = Data.Parts;
-        console.log(parts);
+        console.log(Data.PartStats);
     }
     Program.init = init;
 })(Program || (Program = {}));

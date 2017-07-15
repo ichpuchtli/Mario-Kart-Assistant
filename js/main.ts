@@ -1,10 +1,7 @@
 namespace Program {
-    export function init() {
-        var stats = Data.PartStats;
-        console.log(stats);
-        var parts = Data.Parts;
-        console.log(parts);
-    }
+	export function init() {
+		console.log(Data.PartStats);
+	}
 }
 
 Program.init();
