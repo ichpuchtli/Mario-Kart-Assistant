@@ -1,45 +1,27 @@
 namespace Data {
-    /**
+	/**
      * All the statistics used in the calculator
      */
-	export enum Statistic {
-		Speed = "Speed",
-		SpeedWater = "Speed (Water)",
-		SpeedAir = "Speed (Air)",
-		SpeedAntiGrav = "Speed (Anti-Gravity)",
-		Acceleration = "Acceleration",
-		Weight = "Weight",
-		Handling = "Handling",
-		HandlingWater = "Handling (Water)",
-		HandlingAir = "Handling (Air)",
-		HandlingAntiGrav = "Handling (Anti-Gravity)",
-		Traction = "Traction",
-		MiniTurbo = "Mini-Turbo"
-	}
 
-    /**
-     * All the possible types of parts
-     */
-	export enum PartType {
-		Character = "Character",
-		Body = "Body",
-		Tires = "Tires",
-		Glider = "Glider"
-	}
+	export type Statistic = "Speed" | "Speed (Water)" | "Speed (Air)" | "Speed (Anti-Gravity)" | "Acceleration" |
+		"Weight" | "Handling" | "Handling (Water)" | "Handling (Air)" | "Handling (Anti-Gravity)" | "Traction" | "Mini-Turbo"
 
-	type Part = {
-		name: string
+	export const Statistics: Statistic[] = ["Speed", "Speed (Water)", "Speed (Air)", "Speed (Anti-Gravity)", "Acceleration",
+		"Weight", "Handling", "Handling (Water)", "Handling (Air)", "Handling (Anti-Gravity)", "Traction", "Mini-Turbo"]
+
+	export type Part = {
+		readonly name: string
 	};
 
-	type PartGroup = {
-		name: string,
-		statValues: number[],
-		parts: Part[]
+	export type PartGroup = {
+		readonly name: string,
+		readonly statValues: number[],
+		readonly parts: Part[]
 	};
 
-	type PartTypeInfo = {
-		statOffset: number,
-		groups: PartGroup[]
+	export type PartTypeInfo = {
+		readonly statOffset: number,
+		readonly groups: PartGroup[]
 	};
 
 	// Data comes from https://www.mariowiki.com/Mario_Kart_8_Deluxe#Renewed_statistics
@@ -106,16 +88,24 @@ namespace Data {
 		statOffset: -0.25,
 		groups: [
 			{ name: "Glider Group 1", statValues: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], parts: [{ name: "Super Glider" }, { name: "Waddle Wing" }, { name: "Hylian Kite" }] },
-			{ name: "Glider Group 1", statValues: [0, 1, 0, 2, 2, 0, 1, 1, 2, 1, 1, 2], parts: [{ name: "Cloud Glider" }, { name: "Parachute" }, { name: "Flower Glider" }, { name: "Paper Glider" }] },
-			{ name: "Glider Group 1", statValues: [1, 0, 1, 2, 1, 2, 1, 2, 1, 0, 0, 1], parts: [{ name: "Wario Wing" }, { name: "Plane Glider" }, { name: "Gold Glider" }] },
-			{ name: "Glider Group 1", statValues: [0, 0, 0, 2, 2, 1, 1, 2, 2, 0, 0, 2], parts: [{ name: "Peach Parasol" }, { name: "Parafoil" }, { name: "Bowser Kite" }, { name: "MKTV Parafoil" }] }
+			{ name: "Glider Group 2", statValues: [0, 1, 0, 2, 2, 0, 1, 1, 2, 1, 1, 2], parts: [{ name: "Cloud Glider" }, { name: "Parachute" }, { name: "Flower Glider" }, { name: "Paper Glider" }] },
+			{ name: "Glider Group 3", statValues: [1, 0, 1, 2, 1, 2, 1, 2, 1, 0, 0, 1], parts: [{ name: "Wario Wing" }, { name: "Plane Glider" }, { name: "Gold Glider" }] },
+			{ name: "Glider Group 4", statValues: [0, 0, 0, 2, 2, 1, 1, 2, 2, 0, 0, 2], parts: [{ name: "Peach Parasol" }, { name: "Parafoil" }, { name: "Bowser Kite" }, { name: "MKTV Parafoil" }] }
 		]
 	};
 
-	export const PartStats: {[index in PartType]: PartTypeInfo} = {
-		"Character": CharacterStats,
-		"Body": BodyStats,
-		"Tires": TireStats,
-		"Glider": GliderStats
+	function extractGroups(type: PartTypeInfo): PartGroup[] {
+		return type.groups.map(g => ({
+			name: g.name,
+			parts: g.parts,
+			statValues: g.statValues.map(v => (v / 4) + type.statOffset)
+		}));
+	}
+
+	export const PartStats: { [key: string]: PartGroup[] } = {
+		"Character": extractGroups(CharacterStats),
+		"Body": extractGroups(BodyStats),
+		"Tires": extractGroups(TireStats),
+		"Glider": extractGroups(GliderStats)
 	};
 }

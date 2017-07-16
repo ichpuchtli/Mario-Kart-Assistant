@@ -4,31 +4,8 @@ var Data;
     /**
      * All the statistics used in the calculator
      */
-    var Statistic;
-    (function (Statistic) {
-        Statistic["Speed"] = "Speed";
-        Statistic["SpeedWater"] = "Speed (Water)";
-        Statistic["SpeedAir"] = "Speed (Air)";
-        Statistic["SpeedAntiGrav"] = "Speed (Anti-Gravity)";
-        Statistic["Acceleration"] = "Acceleration";
-        Statistic["Weight"] = "Weight";
-        Statistic["Handling"] = "Handling";
-        Statistic["HandlingWater"] = "Handling (Water)";
-        Statistic["HandlingAir"] = "Handling (Air)";
-        Statistic["HandlingAntiGrav"] = "Handling (Anti-Gravity)";
-        Statistic["Traction"] = "Traction";
-        Statistic["MiniTurbo"] = "Mini-Turbo";
-    })(Statistic = Data.Statistic || (Data.Statistic = {}));
-    /**
-     * All the possible types of parts
-     */
-    var PartType;
-    (function (PartType) {
-        PartType["Character"] = "Character";
-        PartType["Body"] = "Body";
-        PartType["Tires"] = "Tires";
-        PartType["Glider"] = "Glider";
-    })(PartType = Data.PartType || (Data.PartType = {}));
+    Data.Statistics = ["Speed", "Speed (Water)", "Speed (Air)", "Speed (Anti-Gravity)", "Acceleration",
+        "Weight", "Handling", "Handling (Water)", "Handling (Air)", "Handling (Anti-Gravity)", "Traction", "Mini-Turbo"];
     // Data comes from https://www.mariowiki.com/Mario_Kart_8_Deluxe#Renewed_statistics
     var CharacterStats = {
         statOffset: 2,
@@ -89,16 +66,23 @@ var Data;
         statOffset: -0.25,
         groups: [
             { name: "Glider Group 1", statValues: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], parts: [{ name: "Super Glider" }, { name: "Waddle Wing" }, { name: "Hylian Kite" }] },
-            { name: "Glider Group 1", statValues: [0, 1, 0, 2, 2, 0, 1, 1, 2, 1, 1, 2], parts: [{ name: "Cloud Glider" }, { name: "Parachute" }, { name: "Flower Glider" }, { name: "Paper Glider" }] },
-            { name: "Glider Group 1", statValues: [1, 0, 1, 2, 1, 2, 1, 2, 1, 0, 0, 1], parts: [{ name: "Wario Wing" }, { name: "Plane Glider" }, { name: "Gold Glider" }] },
-            { name: "Glider Group 1", statValues: [0, 0, 0, 2, 2, 1, 1, 2, 2, 0, 0, 2], parts: [{ name: "Peach Parasol" }, { name: "Parafoil" }, { name: "Bowser Kite" }, { name: "MKTV Parafoil" }] }
+            { name: "Glider Group 2", statValues: [0, 1, 0, 2, 2, 0, 1, 1, 2, 1, 1, 2], parts: [{ name: "Cloud Glider" }, { name: "Parachute" }, { name: "Flower Glider" }, { name: "Paper Glider" }] },
+            { name: "Glider Group 3", statValues: [1, 0, 1, 2, 1, 2, 1, 2, 1, 0, 0, 1], parts: [{ name: "Wario Wing" }, { name: "Plane Glider" }, { name: "Gold Glider" }] },
+            { name: "Glider Group 4", statValues: [0, 0, 0, 2, 2, 1, 1, 2, 2, 0, 0, 2], parts: [{ name: "Peach Parasol" }, { name: "Parafoil" }, { name: "Bowser Kite" }, { name: "MKTV Parafoil" }] }
         ]
     };
+    function extractGroups(type) {
+        return type.groups.map(function (g) { return ({
+            name: g.name,
+            parts: g.parts,
+            statValues: g.statValues.map(function (v) { return (v / 4) + type.statOffset; })
+        }); });
+    }
     Data.PartStats = {
-        "Character": CharacterStats,
-        "Body": BodyStats,
-        "Tires": TireStats,
-        "Glider": GliderStats
+        "Character": extractGroups(CharacterStats),
+        "Body": extractGroups(BodyStats),
+        "Tires": extractGroups(TireStats),
+        "Glider": extractGroups(GliderStats)
     };
 })(Data || (Data = {}));
 //# sourceMappingURL=data.js.map
