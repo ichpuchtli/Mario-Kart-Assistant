@@ -1,9 +1,6 @@
 "use strict";
 var Data;
 (function (Data) {
-    /**
-     * All the statistics used in the calculator
-     */
     Data.Statistics = ["Speed", "Speed (Water)", "Speed (Air)", "Speed (Anti-Gravity)", "Acceleration",
         "Weight", "Handling", "Handling (Water)", "Handling (Air)", "Handling (Anti-Gravity)", "Traction", "Mini-Turbo"];
     // Data comes from https://www.mariowiki.com/Mario_Kart_8_Deluxe#Renewed_statistics

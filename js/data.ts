@@ -2,7 +2,6 @@ namespace Data {
 	/**
      * All the statistics used in the calculator
      */
-
 	export type Statistic = "Speed" | "Speed (Water)" | "Speed (Air)" | "Speed (Anti-Gravity)" | "Acceleration" |
 		"Weight" | "Handling" | "Handling (Water)" | "Handling (Air)" | "Handling (Anti-Gravity)" | "Traction" | "Mini-Turbo"
 
@@ -102,7 +101,9 @@ namespace Data {
 		}));
 	}
 
-	export const PartStats: { [key: string]: PartGroup[] } = {
+	export type PartType = "Character" | "Body" | "Tires" | "Glider"
+
+	export const PartStats: { [key in PartType]: PartGroup[] } = {
 		"Character": extractGroups(CharacterStats),
 		"Body": extractGroups(BodyStats),
 		"Tires": extractGroups(TireStats),
