@@ -15,7 +15,7 @@ namespace Calculator {
             stats[stat] = clamp(statValue, 0.75, 5.75);
         });
         return {
-            partGroups: partGroups, 
+            partGroups: partGroups,
             stats: stats as {[key in Data.Statistic]: number}
         }
     }
@@ -38,10 +38,10 @@ namespace Calculator {
     }
 
     function genParts(): PartInfo[] {
-        return Object.keys(Data.PartStats).reduce((a, type: Data.PartType) => 
-            a.concat(Data.PartStats[type].reduce((a, partGroup) => 
-                a.concat(partGroup.parts.map((_, partNum) => 
-                    ({type, partGroup, partNum}))), [] as PartInfo[])), [] as PartInfo[])
+        return Object.keys(Data.PartStats).reduce((a, type: Data.PartType) =>
+            a.concat(Data.PartStats[type].reduce((a, partGroup) =>
+                a.concat(partGroup.parts.map((_, partNum) =>
+                    ({ type, partGroup, partNum }))), [] as PartInfo[])), [] as PartInfo[])
     }
 
     const allBuilds: Build[] = genBuilds();
