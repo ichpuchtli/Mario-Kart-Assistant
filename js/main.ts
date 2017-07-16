@@ -1,4 +1,4 @@
-namespace Program {
+namespace Calculator {
     type Build = {
         readonly partGroups: Data.PartGroup[],
         readonly stats: {[key in Data.Statistic]: number}
@@ -44,28 +44,15 @@ namespace Program {
                     ({type, partGroup, partNum}))), [] as PartInfo[])), [] as PartInfo[])
     }
 
-    function getWeights(): {[key in Data.Statistic]: number} {
-        let weights: {[key in Data.Statistic]?: number} = {};
-        Data.Statistics.forEach(stat => {
-            weights[stat] = 1; // TODO, get this from UI
-        });
-        return weights as {[key in Data.Statistic]: number};
-    }
-
-    export const allBuilds: Build[] = genBuilds();
+    const allBuilds: Build[] = genBuilds();
     export const allParts: PartInfo[] = genParts();
-    export function init() {
-        console.log(allBuilds);
-        console.log(allParts);
-    }
 
     type ScoredBuild = {
         score: number,
         build: Build
     }
 
-    export function scoreBuilds(): ScoredBuild[] {
-        const weights = getWeights();
+    export function scoreBuilds(weights: {[key in Data.Statistic]: number}): ScoredBuild[] {
         const scoredBuilds: ScoredBuild[] = allBuilds.map(build => ({
             score: Data.Statistics.reduce((sum, stat) => sum + build.stats[stat] * weights[stat], 0),
             build
@@ -74,5 +61,61 @@ namespace Program {
     }
 }
 
-Program.init();
-console.log(Program.scoreBuilds());
+namespace UI {
+    type UIElements = {
+        slidersDiv: HTMLDivElement,
+        calculateButton: HTMLButtonElement,
+        resultsDiv: HTMLDivElement
+    }
+
+    function getStatisticSliderId(stat: Data.Statistic) {
+        return "slider-" + String(stat).replace(" ", "_");
+    }
+
+    export function init(elements: UIElements) {
+        elements.slidersDiv.innerHTML = "";
+        elements.resultsDiv.innerHTML = "";
+        Data.Statistics.forEach(stat => {
+            const sliderDiv = document.createElement("div");
+            const rangeInput = document.createElement("input");
+            rangeInput.id = getStatisticSliderId(stat);
+            rangeInput.type = "range";
+            rangeInput.defaultValue = "50";
+            sliderDiv.appendChild(rangeInput);
+            sliderDiv.appendChild(document.createTextNode(String(stat)));
+            elements.slidersDiv.appendChild(sliderDiv);
+        });
+        elements.calculateButton.onclick = () => recalculateResults(elements.resultsDiv);
+    }
+
+    function getWeights(): {[key in Data.Statistic]: number} {
+        let weights: {[key in Data.Statistic]?: number} = {};
+        Data.Statistics.forEach(stat => {
+            const rangeInput = document.getElementById(getStatisticSliderId(stat)) as HTMLInputElement;
+            weights[stat] = parseInt(rangeInput.value);
+        });
+        return weights as {[key in Data.Statistic]: number};
+    }
+
+    export function recalculateResults(resultsDiv: HTMLDivElement) {
+        resultsDiv.innerHTML = "";
+        const scores = Calculator.scoreBuilds(getWeights()).slice(0, 10);
+        scores.forEach(score => {
+            const resultDiv = document.createElement("div");
+            resultDiv.appendChild(document.createTextNode("Score: " + score.score));
+            resultDiv.appendChild(document.createElement("br"));
+            resultDiv.appendChild(document.createTextNode("Build: " + score.build.partGroups.map(g => "[" + g.parts.map(p => p.name).join(", ") + "]").join(", ")));
+            resultDiv.appendChild(document.createElement("br"));
+            resultDiv.appendChild(document.createTextNode("Stats: " + Data.Statistics.map((s: Data.Statistic) => String(s) + ": " + score.build.stats[s]).join(", ")));
+            resultDiv.appendChild(document.createElement("br"));
+            resultDiv.appendChild(document.createElement("br"));
+            resultsDiv.appendChild(resultDiv);
+        })
+    }
+}
+
+UI.init({
+    slidersDiv: document.getElementById("sliders") as HTMLDivElement,
+    calculateButton: document.getElementById("calculate") as HTMLButtonElement,
+    resultsDiv: document.getElementById("results") as HTMLDivElement
+})

@@ -1,6 +1,6 @@
 "use strict";
-var Program;
-(function (Program) {
+var Calculator;
+(function (Calculator) {
     function clamp(num, min, max) {
         return Math.min(Math.max(num, min), max);
     }
@@ -34,30 +34,66 @@ var Program;
             }, []));
         }, []);
     }
-    function getWeights() {
-        var weights = {};
-        Data.Statistics.forEach(function (stat) {
-            weights[stat] = 1; // TODO, get this from UI
-        });
-        return weights;
-    }
-    Program.allBuilds = genBuilds();
-    Program.allParts = genParts();
-    function init() {
-        console.log(Program.allBuilds);
-        console.log(Program.allParts);
-    }
-    Program.init = init;
-    function scoreBuilds() {
-        var weights = getWeights();
-        var scoredBuilds = Program.allBuilds.map(function (build) { return ({
+    var allBuilds = genBuilds();
+    Calculator.allParts = genParts();
+    function scoreBuilds(weights) {
+        var scoredBuilds = allBuilds.map(function (build) { return ({
             score: Data.Statistics.reduce(function (sum, stat) { return sum + build.stats[stat] * weights[stat]; }, 0),
             build: build
         }); });
         return scoredBuilds.sort(function (a, b) { return b.score - a.score; });
     }
-    Program.scoreBuilds = scoreBuilds;
-})(Program || (Program = {}));
-Program.init();
-console.log(Program.scoreBuilds());
+    Calculator.scoreBuilds = scoreBuilds;
+})(Calculator || (Calculator = {}));
+var UI;
+(function (UI) {
+    function getStatisticSliderId(stat) {
+        return "slider-" + String(stat).replace(" ", "_");
+    }
+    function init(elements) {
+        elements.slidersDiv.innerHTML = "";
+        elements.resultsDiv.innerHTML = "";
+        Data.Statistics.forEach(function (stat) {
+            var sliderDiv = document.createElement("div");
+            var rangeInput = document.createElement("input");
+            rangeInput.id = getStatisticSliderId(stat);
+            rangeInput.type = "range";
+            rangeInput.defaultValue = "50";
+            sliderDiv.appendChild(rangeInput);
+            sliderDiv.appendChild(document.createTextNode(String(stat)));
+            elements.slidersDiv.appendChild(sliderDiv);
+        });
+        elements.calculateButton.onclick = function () { return recalculateResults(elements.resultsDiv); };
+    }
+    UI.init = init;
+    function getWeights() {
+        var weights = {};
+        Data.Statistics.forEach(function (stat) {
+            var rangeInput = document.getElementById(getStatisticSliderId(stat));
+            weights[stat] = parseInt(rangeInput.value);
+        });
+        return weights;
+    }
+    function recalculateResults(resultsDiv) {
+        resultsDiv.innerHTML = "";
+        var scores = Calculator.scoreBuilds(getWeights()).slice(0, 10);
+        scores.forEach(function (score) {
+            var resultDiv = document.createElement("div");
+            resultDiv.appendChild(document.createTextNode("Score: " + score.score));
+            resultDiv.appendChild(document.createElement("br"));
+            resultDiv.appendChild(document.createTextNode("Build: " + score.build.partGroups.map(function (g) { return "[" + g.parts.map(function (p) { return p.name; }).join(", ") + "]"; }).join(", ")));
+            resultDiv.appendChild(document.createElement("br"));
+            resultDiv.appendChild(document.createTextNode("Stats: " + Data.Statistics.map(function (s) { return String(s) + ": " + score.build.stats[s]; }).join(", ")));
+            resultDiv.appendChild(document.createElement("br"));
+            resultDiv.appendChild(document.createElement("br"));
+            resultsDiv.appendChild(resultDiv);
+        });
+    }
+    UI.recalculateResults = recalculateResults;
+})(UI || (UI = {}));
+UI.init({
+    slidersDiv: document.getElementById("sliders"),
+    calculateButton: document.getElementById("calculate"),
+    resultsDiv: document.getElementById("results")
+});
 //# sourceMappingURL=main.js.map
