@@ -71,7 +71,9 @@ var UI;
             var rangeInput = document.createElement("input");
             rangeInput.id = getStatisticSliderId(stat);
             rangeInput.type = "range";
-            rangeInput.defaultValue = "50";
+            rangeInput.defaultValue = "5";
+            rangeInput.max = "10";
+            rangeInput.min = "0";
             sliderDiv.appendChild(rangeInput);
             sliderDiv.appendChild(document.createTextNode(String(stat)));
             elements.slidersDiv.appendChild(sliderDiv);
@@ -102,7 +104,6 @@ var UI;
     }
     UI.recalculateResults = recalculateResults;
 })(UI || (UI = {}));
-console.log(Calculator.allBuilds.map(function (b) { return [b, Calculator.scoreBuilds(b.stats)[0]]; }));
 UI.init({
     slidersDiv: document.getElementById("sliders"),
     calculateButton: document.getElementById("calculate"),
