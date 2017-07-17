@@ -49,9 +49,24 @@ var Calculator;
     }
     Calculator.allBuilds = genBuilds();
     Calculator.allParts = genParts();
+    function normaliseWeights(weights) {
+        var sum = Data.Statistics.reduce(function (total, stat) { return total + weights[stat]; }, 0);
+        return Util.constructObject(Data.Statistics, function (stat) { return [stat, weights[stat] / sum]; });
+    }
+    /**
+     * Gets the Weighted Product Model ratio of the two builds https://en.wikipedia.org/wiki/Weighted_product_model
+     */
+    function getBuildRatio(a, b, normWeights) {
+        return Data.Statistics.reduce(function (r, stat) { return r * Math.pow(a.stats[stat] / b.stats[stat], normWeights[stat]); }, 1);
+    }
+    function findBestBuild(normWeights) {
+        return Calculator.allBuilds.reduce(function (a, b) { return getBuildRatio(a, b, normWeights) > 1 ? a : b; }, Calculator.allBuilds[0]);
+    }
     function scoreBuilds(weights) {
+        var normWeights = normaliseWeights(weights);
+        var bestBuild = findBestBuild(normWeights);
         var scoredBuilds = Calculator.allBuilds.map(function (build) { return ({
-            score: Data.Statistics.reduce(function (sum, stat) { return sum + build.stats[stat] * weights[stat]; }, 0),
+            score: getBuildRatio(build, bestBuild, normWeights),
             build: build
         }); });
         return scoredBuilds.sort(function (a, b) { return b.score - a.score; });
@@ -92,7 +107,7 @@ var UI;
         var scores = Calculator.scoreBuilds(getWeights()).slice(0, 10);
         scores.forEach(function (score) {
             var resultDiv = document.createElement("div");
-            resultDiv.appendChild(document.createTextNode("Score: " + score.score));
+            resultDiv.appendChild(document.createTextNode("Score: " + (score.score * 100).toFixed(2) + "%"));
             resultDiv.appendChild(document.createElement("br"));
             resultDiv.appendChild(document.createTextNode("Build: " + score.build.partGroups.map(function (g) { return "[" + g.parts.map(function (p) { return p.name; }).join(", ") + "]"; }).join(", ")));
             resultDiv.appendChild(document.createElement("br"));

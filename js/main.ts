@@ -62,9 +62,29 @@ namespace Calculator {
         build: Build
     }
 
-    export function scoreBuilds(weights: {[key in Data.Statistic]: number}): ScoredBuild[] {
+    export type Weights = {[key in Data.Statistic]: number};
+
+    function normaliseWeights(weights: Weights): Weights {
+        const sum = Data.Statistics.reduce((total, stat) => total + weights[stat], 0);
+        return Util.constructObject(Data.Statistics, stat => [stat, weights[stat]/sum]);
+    }
+
+    /**
+     * Gets the Weighted Product Model ratio of the two builds https://en.wikipedia.org/wiki/Weighted_product_model
+     */
+    function getBuildRatio(a: Build, b: Build, normWeights: Weights) {
+        return Data.Statistics.reduce((r, stat) => r * Math.pow(a.stats[stat] / b.stats[stat], normWeights[stat]), 1);
+    }
+
+    function findBestBuild(normWeights: Weights): Build {
+        return allBuilds.reduce((a, b) => getBuildRatio(a, b, normWeights) > 1 ? a : b, allBuilds[0]);
+    }
+
+    export function scoreBuilds(weights: Weights): ScoredBuild[] {
+        const normWeights = normaliseWeights(weights);
+        const bestBuild = findBestBuild(normWeights);
         const scoredBuilds: ScoredBuild[] = allBuilds.map(build => ({
-            score: Data.Statistics.reduce((sum, stat) => sum + build.stats[stat] * weights[stat], 0),
+            score: getBuildRatio(build, bestBuild, normWeights),
             build
         }));
         return scoredBuilds.sort((a, b) => b.score - a.score);
@@ -100,9 +120,7 @@ namespace UI {
         elements.calculateButton.onclick = () => recalculateResults(elements.resultsDiv);
     }
 
-    
-
-    function getWeights(): {[key in Data.Statistic]: number} {
+    function getWeights(): Calculator.Weights {
         return Util.constructObject(Data.Statistics, stat => {
             const rangeInput = document.getElementById(getStatisticSliderId(stat)) as HTMLInputElement;
             return [stat, parseInt(rangeInput.value)];
@@ -114,7 +132,7 @@ namespace UI {
         const scores = Calculator.scoreBuilds(getWeights()).slice(0, 10);
         scores.forEach(score => {
             const resultDiv = document.createElement("div");
-            resultDiv.appendChild(document.createTextNode("Score: " + score.score));
+            resultDiv.appendChild(document.createTextNode("Score: " + (score.score*100).toFixed(2) + "%"));
             resultDiv.appendChild(document.createElement("br"));
             resultDiv.appendChild(document.createTextNode("Build: " + score.build.partGroups.map(g => "[" + g.parts.map(p => p.name).join(", ") + "]").join(", ")));
             resultDiv.appendChild(document.createElement("br"));
