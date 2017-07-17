@@ -1,34 +1,44 @@
+namespace Util {
+    export function clamp(num: number, min: number, max: number): number {
+        return Math.min(Math.max(num, min), max);
+    }
+
+    export function cartesianProduct<T>(arr: T[][]): T[][] {
+        return arr.reduce((a, b) =>
+            a.map(x => b.map(y => x.concat(y)))
+                .reduce((a, b) => a.concat(b), []), [[]] as T[][]);
+    }
+
+    /**
+     * Takes an array and a function that maps each of it's elements to a key, value pair, then turns that key value pair into an object
+     * @param arr array being mapped to object
+     * @param mapFunc function which maps elements of arr to key, value pair
+     */
+    export function constructObject<A, K extends string, V>(arr: A[], mapFunc: (elem: A, index: number) => [K, V]): {[key in K]: V} {
+        return arr.map(mapFunc).reduce((obj, entry) => {
+            obj[entry[0]] = entry[1];
+            return obj;
+        }, {} as {[key in K]: V});
+    }
+}
+
 namespace Calculator {
     type Build = {
         readonly partGroups: Data.PartGroup[],
         readonly stats: {[key in Data.Statistic]: number}
     }
 
-    function clamp(num: number, min: number, max: number): number {
-        return Math.min(Math.max(num, min), max);
-    }
-
     function createBuild(partGroups: Data.PartGroup[]): Build {
-        let stats: {[key in Data.Statistic]?: number} = {};
-        Data.Statistics.forEach((stat, i) => {
+        const stats = Util.constructObject(Data.Statistics, (stat, i) => {
             const statValue = partGroups.reduce((a, b) => a + b.statValues[i], 0);
-            stats[stat] = clamp(statValue, 0.75, 5.75);
+            return [stat, Util.clamp(statValue, 0.75, 5.75)];
         });
-        return {
-            partGroups: partGroups,
-            stats: stats as {[key in Data.Statistic]: number}
-        }
-    }
-
-    function cartesianProduct<T>(arr: T[][]): T[][] {
-        return arr.reduce((a, b) =>
-            a.map(x => b.map(y => x.concat(y)))
-                .reduce((a, b) => a.concat(b), []), [[]] as T[][]);
+        return { partGroups, stats };
     }
 
     function genBuilds(): Build[] {
         const groups = Object.keys(Data.PartStats).map((type: Data.PartType) => Data.PartStats[type]);
-        return cartesianProduct(groups).map(createBuild);
+        return Util.cartesianProduct(groups).map(createBuild);
     }
 
     type PartInfo = {
@@ -44,7 +54,7 @@ namespace Calculator {
                     ({ type, partGroup, partNum }))), [] as PartInfo[])), [] as PartInfo[])
     }
 
-    const allBuilds: Build[] = genBuilds();
+    export const allBuilds: Build[] = genBuilds();
     export const allParts: PartInfo[] = genParts();
 
     type ScoredBuild = {
@@ -88,13 +98,13 @@ namespace UI {
         elements.calculateButton.onclick = () => recalculateResults(elements.resultsDiv);
     }
 
+    
+
     function getWeights(): {[key in Data.Statistic]: number} {
-        let weights: {[key in Data.Statistic]?: number} = {};
-        Data.Statistics.forEach(stat => {
+        return Util.constructObject(Data.Statistics, stat => {
             const rangeInput = document.getElementById(getStatisticSliderId(stat)) as HTMLInputElement;
-            weights[stat] = parseInt(rangeInput.value);
+            return [stat, parseInt(rangeInput.value)];
         });
-        return weights as {[key in Data.Statistic]: number};
     }
 
     export function recalculateResults(resultsDiv: HTMLDivElement) {
@@ -113,6 +123,8 @@ namespace UI {
         })
     }
 }
+
+console.log(Calculator.allBuilds.map(b => [b, Calculator.scoreBuilds(b.stats)[0]]))
 
 UI.init({
     slidersDiv: document.getElementById("sliders") as HTMLDivElement,

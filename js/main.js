@@ -1,29 +1,42 @@
 "use strict";
-var Calculator;
-(function (Calculator) {
+var Util;
+(function (Util) {
     function clamp(num, min, max) {
         return Math.min(Math.max(num, min), max);
     }
-    function createBuild(partGroups) {
-        var stats = {};
-        Data.Statistics.forEach(function (stat, i) {
-            var statValue = partGroups.reduce(function (a, b) { return a + b.statValues[i]; }, 0);
-            stats[stat] = clamp(statValue, 0.75, 5.75);
-        });
-        return {
-            partGroups: partGroups,
-            stats: stats
-        };
-    }
+    Util.clamp = clamp;
     function cartesianProduct(arr) {
         return arr.reduce(function (a, b) {
             return a.map(function (x) { return b.map(function (y) { return x.concat(y); }); })
                 .reduce(function (a, b) { return a.concat(b); }, []);
         }, [[]]);
     }
+    Util.cartesianProduct = cartesianProduct;
+    /**
+     * Takes an array and a function that maps each of it's elements to a key, value pair, then turns that key value pair into an object
+     * @param arr array being mapped to object
+     * @param mapFunc function which maps elements of arr to key, value pair
+     */
+    function constructObject(arr, mapFunc) {
+        return arr.map(mapFunc).reduce(function (obj, entry) {
+            obj[entry[0]] = entry[1];
+            return obj;
+        }, {});
+    }
+    Util.constructObject = constructObject;
+})(Util || (Util = {}));
+var Calculator;
+(function (Calculator) {
+    function createBuild(partGroups) {
+        var stats = Util.constructObject(Data.Statistics, function (stat, i) {
+            var statValue = partGroups.reduce(function (a, b) { return a + b.statValues[i]; }, 0);
+            return [stat, Util.clamp(statValue, 0.75, 5.75)];
+        });
+        return { partGroups: partGroups, stats: stats };
+    }
     function genBuilds() {
         var groups = Object.keys(Data.PartStats).map(function (type) { return Data.PartStats[type]; });
-        return cartesianProduct(groups).map(createBuild);
+        return Util.cartesianProduct(groups).map(createBuild);
     }
     function genParts() {
         return Object.keys(Data.PartStats).reduce(function (a, type) {
@@ -34,10 +47,10 @@ var Calculator;
             }, []));
         }, []);
     }
-    var allBuilds = genBuilds();
+    Calculator.allBuilds = genBuilds();
     Calculator.allParts = genParts();
     function scoreBuilds(weights) {
-        var scoredBuilds = allBuilds.map(function (build) { return ({
+        var scoredBuilds = Calculator.allBuilds.map(function (build) { return ({
             score: Data.Statistics.reduce(function (sum, stat) { return sum + build.stats[stat] * weights[stat]; }, 0),
             build: build
         }); });
@@ -67,12 +80,10 @@ var UI;
     }
     UI.init = init;
     function getWeights() {
-        var weights = {};
-        Data.Statistics.forEach(function (stat) {
+        return Util.constructObject(Data.Statistics, function (stat) {
             var rangeInput = document.getElementById(getStatisticSliderId(stat));
-            weights[stat] = parseInt(rangeInput.value);
+            return [stat, parseInt(rangeInput.value)];
         });
-        return weights;
     }
     function recalculateResults(resultsDiv) {
         resultsDiv.innerHTML = "";
@@ -91,6 +102,7 @@ var UI;
     }
     UI.recalculateResults = recalculateResults;
 })(UI || (UI = {}));
+console.log(Calculator.allBuilds.map(function (b) { return [b, Calculator.scoreBuilds(b.stats)[0]]; }));
 UI.init({
     slidersDiv: document.getElementById("sliders"),
     calculateButton: document.getElementById("calculate"),
