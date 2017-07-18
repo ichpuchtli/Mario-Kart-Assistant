@@ -5,8 +5,8 @@ namespace Util {
 
     export function cartesianProduct<T>(arr: T[][]): T[][] {
         return arr.reduce((a, b) =>
-            a.map(x => b.map(y => x.concat(y)))
-                .reduce((a, b) => a.concat(b), []), [[]] as T[][]);
+            a.map(x => b.map(y => [...x, ...y))
+                .reduce((a, b) => [...a, ...b], []), [[]] as T[][]);
     }
 
     /**
@@ -15,10 +15,7 @@ namespace Util {
      * @param mapFunc function which maps elements of arr to key, value pair
      */
     export function constructObject<A, K extends string, V>(arr: A[], mapFunc: (elem: A, index: number) => [K, V]): {[key in K]: V} {
-        return arr.map(mapFunc).reduce((obj, entry) => {
-            obj[entry[0]] = entry[1];
-            return obj;
-        }, {} as {[key in K]: V});
+        return arr.map(mapFunc).reduce((obj, [key, value]) => ({ ...obj, key: value}), as {[key in K]: V});
     }
 }
 
